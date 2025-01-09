@@ -1,4 +1,7 @@
+// src/App.jsx
+
 import { useState, useEffect, useRef } from 'react';
+import SurveyForm from './SurveyForm.jsx'; // <-- new import
 
 const CARD_IMAGES = [
   '/game-image1.jpg',
@@ -86,7 +89,7 @@ const LeaderboardPage = ({ onBack }) => {
                   })}
                 </tbody>
               </table>
-              {/* Edit button moved to bottom */}
+              {/* Edit button at the bottom */}
               <button onClick={() => setEditing(!editing)} style={{ marginTop: '20px' }}>
                 {editing ? 'Done' : 'Edit'}
               </button>
@@ -99,102 +102,10 @@ const LeaderboardPage = ({ onBack }) => {
   );
 };
 
-const SurveyForm = ({ onComplete }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    institution: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid work email');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      // Store user data locally
-      localStorage.setItem('userGameData', JSON.stringify(formData));
-      console.log('Form submitted:', formData);
-      onComplete(formData);
-    } catch (err) {
-      console.error('Form submission error:', err);
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  return (
-    <div className="survey-container">
-      <h2>Before You Play</h2>
-      <p>Please provide your information to continue</p>
-      <form onSubmit={handleSubmit} className="survey-form">
-        <div className="form-group">
-          <label htmlFor="name">Full Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            placeholder="Enter your full name"
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="email">Work Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            placeholder="Enter your work email"
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="institution">Institution</label>
-          <input
-            type="text"
-            id="institution"
-            name="institution"
-            value={formData.institution}
-            onChange={handleChange}
-            required
-            placeholder="Enter your institution"
-          />
-        </div>
-        {error && <div className="error-message">{error}</div>}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Start Game'}
-        </button>
-      </form>
-    </div>
-  );
-};
-
 const preloadVideo = async (videoElement) => {
   if (videoElement) {
     try {
-      videoElement.preload = "auto";
+      videoElement.preload = 'auto';
       videoElement.load();
       videoElement.currentTime = 0.1;
       await new Promise((resolve) => {
@@ -214,7 +125,7 @@ function App() {
   const [matchedCards, setMatchedCards] = useState([]);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [timeElapsed, setTimeElapsed] = useState(0); // ms
+  const [timeElapsed, setTimeElapsed] = useState(0); // in ms
   const [gameResult, setGameResult] = useState(null);
   const [showSurvey, setShowSurvey] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -226,6 +137,7 @@ function App() {
   const videoEndTimeRef = useRef(null);
   const gameStartTimeRef = useRef(null);
 
+  // Check if user data is already stored
   useEffect(() => {
     const storedUser = localStorage.getItem('userGameData');
     if (storedUser) {
@@ -261,7 +173,7 @@ function App() {
   const finalizeGameResult = () => {
     let result;
     if (aiFinishedFirst) {
-      // If AI finished first, we always lose at the end
+      // If AI finished first, we automatically lose
       result = 'lose';
       document.body.className = 'lose-bg';
     } else if (videoRef.current && videoEndTimeRef.current) {
@@ -288,8 +200,7 @@ function App() {
   };
 
   const handleVideoEnd = () => {
-    // AI finished first, but don't finalize the game or save score
-    // Just set background to red and allow player to continue
+    // The AI finished first, but don't finalize or save the score
     if (!gameOver && !aiFinishedFirst) {
       document.body.className = 'lose-bg';
       setAiFinishedFirst(true);
@@ -339,11 +250,12 @@ function App() {
 
     gameStartTimeRef.current = Date.now();
 
-    // Reveal cards briefly
-    const revealedCards = cards.map(card => ({ ...card, isFlipped: true }));
+    // Briefly show all cards face-up
+    const revealedCards = cards.map((card) => ({ ...card, isFlipped: true }));
     setCards(revealedCards);
     setGameStarted(true);
 
+    // Play the video
     if (videoRef.current) {
       try {
         if (!videoRef.current.readyState) {
@@ -357,22 +269,24 @@ function App() {
       }
     }
 
+    // Start our game timer
     timerRef.current = setInterval(() => {
       setTimeElapsed(Date.now() - gameStartTimeRef.current);
     }, 100);
 
+    // Flip the cards back after 3 seconds
     setTimeout(() => {
-      const hiddenCards = cards.map(card => ({ ...card, isFlipped: false }));
+      const hiddenCards = cards.map((card) => ({ ...card, isFlipped: false }));
       setCards(hiddenCards);
     }, 3000);
   };
 
   const handleCardClick = (clickedCard) => {
-    if (!gameStarted || clickedCard.isFlipped || matchedCards.some(card => card.id === clickedCard.id)) {
+    if (!gameStarted || clickedCard.isFlipped || matchedCards.some((card) => card.id === clickedCard.id)) {
       return;
     }
 
-    const updatedCards = cards.map(card =>
+    const updatedCards = cards.map((card) =>
       card.id === clickedCard.id ? { ...card, isFlipped: true } : card
     );
     setCards(updatedCards);
@@ -386,19 +300,18 @@ function App() {
         setMatchedCards(updatedMatched);
         setFlippedCards([]);
 
-        // Check if all matched
+        // Check if all cards matched
         if (updatedMatched.length === cards.length) {
-          // Now game ends
           setGameOver(true);
           clearInterval(timerRef.current);
           setTimeElapsed(Date.now() - gameStartTimeRef.current);
           finalizeGameResult();
         }
       } else {
-        // Not a match
+        // Not a match - flip them back after 1 second
         setTimeout(() => {
-          const resetCards = cards.map(card =>
-            newFlipped.some(flipped => flipped.id === card.id) ? { ...card, isFlipped: false } : card
+          const resetCards = cards.map((card) =>
+            newFlipped.some((flipped) => flipped.id === card.id) ? { ...card, isFlipped: false } : card
           );
           setCards(resetCards);
           setFlippedCards([]);
@@ -407,6 +320,7 @@ function App() {
     }
   };
 
+  // Initialize / preload on mount
   useEffect(() => {
     const initVideoAndGame = async () => {
       initializeGame();
@@ -428,6 +342,7 @@ function App() {
     setShowSurvey(false);
   };
 
+  // Stop the timer if the game is over
   useEffect(() => {
     if (gameOver && timerRef.current) {
       clearInterval(timerRef.current);
@@ -472,7 +387,10 @@ function App() {
             </div>
             <div className="button-group-right">
               {userData && (
-                <button onClick={handleNewUser} style={{ backgroundColor: '#FF4500', marginRight: '10px' }}>
+                <button
+                  onClick={handleNewUser}
+                  style={{ backgroundColor: '#FF4500', marginRight: '10px' }}
+                >
                   New User
                 </button>
               )}
@@ -513,7 +431,9 @@ function App() {
                   Your browser does not support the video tag.
                 </video>
                 <div className="promo-text">
-                  KEATH.ai is an educational assessment platform. Above watch KEATH.ai showcase its power to assess 3000 words at speed. Can you match the speed of the AI? Play and win big prizes!
+                  KEATH.ai is an educational assessment platform. Above watch KEATH.ai showcase its
+                  power to assess 3000 words at speed. Can you match the speed of the AI? Play and
+                  win big prizes!
                 </div>
               </div>
 
@@ -524,7 +444,13 @@ function App() {
                     onClick={() => handleCardClick(card)}
                     className="card-container"
                   >
-                    <div className={`card ${card.isFlipped || matchedCards.some(m => m.id === card.id) ? 'flipped' : ''}`}>
+                    <div
+                      className={`card ${
+                        card.isFlipped || matchedCards.some((m) => m.id === card.id)
+                          ? 'flipped'
+                          : ''
+                      }`}
+                    >
                       <div className="card-front">
                         <img src="/card-back.jpg" alt="card back" className="card-image" />
                       </div>
@@ -535,7 +461,6 @@ function App() {
                   </div>
                 ))}
               </div>
-
             </div>
           </div>
         </>
