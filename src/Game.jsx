@@ -1,6 +1,7 @@
 // src/Game.jsx
 
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // <-- import useNavigate
 
 const CARD_IMAGES = [
   '/game-image1.jpg',
@@ -118,6 +119,9 @@ const preloadVideo = async (videoElement) => {
 };
 
 function Game() {
+  // ----------------
+  // HOOKS & STATES
+  // ----------------
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedCards, setMatchedCards] = useState([]);
@@ -135,11 +139,15 @@ function Game() {
   const videoEndTimeRef = useRef(null);
   const gameStartTimeRef = useRef(null);
 
+  const navigate = useNavigate(); // <-- useNavigate for "New User" button
+
+  // -------------------------
+  // SAVE & FINALIZE GAME LOGIC
+  // -------------------------
   const saveGameScore = (finalResult) => {
     try {
       let existingScores = JSON.parse(localStorage.getItem('gameScores') || '[]');
       const newScore = {
-        // If you want to retrieve real user data, store it or pass it here.
         name: 'Unknown',
         institution: 'N/A',
         email: '',
@@ -191,6 +199,9 @@ function Game() {
     }
   };
 
+  // ---------------------------
+  // GAME INITIALIZATION
+  // ---------------------------
   const initializeGame = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -221,6 +232,9 @@ function Game() {
     setShowLeaderboard(false);
   };
 
+  // ---------------------------
+  // START THE GAME
+  // ---------------------------
   const startGame = async () => {
     if (gameStarted) return;
 
@@ -261,6 +275,9 @@ function Game() {
     }, 3000);
   };
 
+  // ---------------------------
+  // CARD CLICK
+  // ---------------------------
   const handleCardClick = (clickedCard) => {
     if (!gameStarted || clickedCard.isFlipped || matchedCards.some((c) => c.id === clickedCard.id)) {
       return;
@@ -274,6 +291,7 @@ function Game() {
     const newFlipped = [...flippedCards, clickedCard];
     setFlippedCards(newFlipped);
 
+    // Check for match
     if (newFlipped.length === 2) {
       if (newFlipped[0].image === newFlipped[1].image) {
         const updatedMatched = [...matchedCards, ...newFlipped];
@@ -281,17 +299,19 @@ function Game() {
         setFlippedCards([]);
 
         if (updatedMatched.length === cards.length) {
-          // All cards matched -> game end
+          // All cards matched -> game over
           setGameOver(true);
           clearInterval(timerRef.current);
           setTimeElapsed(Date.now() - gameStartTimeRef.current);
           finalizeGameResult();
         }
       } else {
-        // Not a match -> flip back
+        // Not a match -> flip them back
         setTimeout(() => {
           const resetCards = cards.map((card) =>
-            newFlipped.some((flipped) => flipped.id === card.id) ? { ...card, isFlipped: false } : card
+            newFlipped.some((flipped) => flipped.id === card.id)
+              ? { ...card, isFlipped: false }
+              : card
           );
           setCards(resetCards);
           setFlippedCards([]);
@@ -300,6 +320,9 @@ function Game() {
     }
   };
 
+  // ---------------------------
+  // ON MOUNT
+  // ---------------------------
   useEffect(() => {
     const initVideoAndGame = async () => {
       initializeGame();
@@ -316,6 +339,9 @@ function Game() {
     };
   }, []);
 
+  // ---------------------------
+  // STATUS MESSAGE
+  // ---------------------------
   let statusMessage = null;
   if (!gameOver && aiFinishedFirst) {
     statusMessage = <div className="lose-message">The AI won, but you can keep playing!</div>;
@@ -329,21 +355,37 @@ function Game() {
     }
   }
 
-  // If we're showing the leaderboard, show that component instead:
+  // Show the Leaderboard or the Game
   if (showLeaderboard) {
     return <LeaderboardPage onBack={() => setShowLeaderboard(false)} />;
   }
 
-  // Otherwise, show the memory game
   return (
     <div className="App">
       <h1>CAN YOU BEAT THE AI?</h1>
+
       <div className="top-bar">
         <div className="button-group-left">
           {!gameStarted && <button onClick={startGame}>Start Game</button>}
           <button onClick={initializeGame}>Reset Game</button>
         </div>
+
         <div className="button-group-right">
+          {/* 
+            NEW: "New User" button that 
+            1) Clears the old user data 
+            2) Navigates back to "/" so they can see FormPage 
+          */}
+          <button
+            onClick={() => {
+              localStorage.removeItem('userGameData'); // optional
+              navigate('/'); // go back to the form route
+            }}
+            style={{ backgroundColor: '#FF4500', marginRight: '10px' }}
+          >
+            New User
+          </button>
+
           <button onClick={() => setShowLeaderboard(true)} className="leaderboard-button">
             View Leaderboard
           </button>

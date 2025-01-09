@@ -7,7 +7,32 @@
     <title>Vite + React</title>
   </head>
   <body>
+    <!-- REACT MOUNT POINT -->
     <div id="root"></div>
+
+    <!-- 
+      1) HIDDEN NETLIFY FORM
+      This ensures Netlify detects your form at build time. 
+      "user-info" is the form name. You can rename if you want. 
+    -->
+    <form
+      name="user-info" 
+      method="POST"
+      data-netlify="true"
+      style="display: none;"
+    >
+      <!-- Must match your form name above -->
+      <input type="hidden" name="form-name" value="user-info" />
+
+      <!-- Optional spam/bot field -->
+      <p>
+        <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
+      </p>
+
+      <!-- If you want Netlify to store additional fields, list them here
+           or replicate the same names as in your React code. -->
+    </form>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

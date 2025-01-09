@@ -9,7 +9,7 @@ function FormPage() {
     institution: ''
   });
   const [error, setError] = useState('');
-  const navigate = useNavigate(); // lets us go to /game after submit
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -21,11 +21,31 @@ function FormPage() {
       return;
     }
 
-    // (Optional) store data if you need it later
+    // 1) Optionally store data locally
     localStorage.setItem('userGameData', JSON.stringify(formData));
 
-    // Now navigate to the memory match game
-    navigate('/game');
+    // 2) Prepare a FormData object to POST to Netlify
+    //    Must match the form name in the hidden form within index.html (e.g. "user-info").
+    const data = new FormData();
+    data.append('form-name', 'user-info');      // same name used in index.html
+    data.append('name', formData.name);
+    data.append('email', formData.email);
+    data.append('institution', formData.institution);
+
+    // 3) Ajax POST to Netlify
+    fetch('/', {
+      method: 'POST',
+      body: data,
+    })
+      .then(() => {
+        console.log('Form submitted to Netlify!');
+        // 4) Navigate to /game
+        navigate('/game');
+      })
+      .catch((err) => {
+        console.error('Netlify form submission error:', err);
+        setError('Error submitting the form. Please try again.');
+      });
   };
 
   const handleChange = (e) => {
