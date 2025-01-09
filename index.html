@@ -16,22 +16,23 @@
       "user-info" is the form name. You can rename if you want. 
     -->
     <form
-      name="user-info" 
-      method="POST"
-      data-netlify="true"
-      style="display: none;"
-    >
-      <!-- Must match your form name above -->
-      <input type="hidden" name="form-name" value="user-info" />
+  name="user-info" 
+  method="POST"
+  data-netlify="true"
+  style="display: none;"
+>
+  <input type="hidden" name="form-name" value="user-info" />
 
-      <!-- Optional spam/bot field -->
-      <p>
-        <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
-      </p>
+  <!-- Optional spam/bot field -->
+  <p>
+    <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
+  </p>
 
-      <!-- If you want Netlify to store additional fields, list them here
-           or replicate the same names as in your React code. -->
-    </form>
+  <!-- NEW: replicate your fields so Netlify knows about them -->
+  <input type="text" name="name" />
+  <input type="text" name="email" />
+  <input type="text" name="institution" />
+</form>
 
     <script type="module" src="/src/main.jsx"></script>
   </body>

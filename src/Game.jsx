@@ -1,8 +1,9 @@
 // src/Game.jsx
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // <-- import useNavigate
+import { useNavigate } from 'react-router-dom';
 
+// 9 card images for matching:
 const CARD_IMAGES = [
   '/game-image1.jpg',
   '/game-image2.jpg',
@@ -15,6 +16,7 @@ const CARD_IMAGES = [
   '/game-image9.jpg'
 ];
 
+// Format milliseconds into mm:ss
 const formatTime = (ms) => {
   const seconds = Math.floor(ms / 1000);
   const mins = Math.floor(seconds / 60);
@@ -22,6 +24,7 @@ const formatTime = (ms) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
+// Leaderboard sub-component
 const LeaderboardPage = ({ onBack }) => {
   const [scores, setScores] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -101,6 +104,7 @@ const LeaderboardPage = ({ onBack }) => {
   );
 };
 
+// Preload the video so it's ready to play
 const preloadVideo = async (videoElement) => {
   if (videoElement) {
     try {
@@ -119,9 +123,20 @@ const preloadVideo = async (videoElement) => {
 };
 
 function Game() {
-  // ----------------
-  // HOOKS & STATES
-  // ----------------
+  // ---------------------------------------------------
+  // 1) Load user data from localStorage on mount
+  // ---------------------------------------------------
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('userGameData');
+    if (storedUser) {
+      setUserData(JSON.parse(storedUser));
+    }
+  }, []);
+  // ---------------------------------------------------
+
+  // Hooks & States
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedCards, setMatchedCards] = useState([]);
@@ -134,23 +149,26 @@ function Game() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [aiFinishedFirst, setAiFinishedFirst] = useState(false);
 
+  // For the video and timing
   const videoRef = useRef(null);
   const timerRef = useRef(null);
   const videoEndTimeRef = useRef(null);
   const gameStartTimeRef = useRef(null);
 
-  const navigate = useNavigate(); // <-- useNavigate for "New User" button
+  const navigate = useNavigate(); // Needed for "New User" button
 
-  // -------------------------
-  // SAVE & FINALIZE GAME LOGIC
-  // -------------------------
+  // ------------------------------------------------------
+  // 2) Save Game Score Using Real User Data if Available
+  // ------------------------------------------------------
   const saveGameScore = (finalResult) => {
     try {
       let existingScores = JSON.parse(localStorage.getItem('gameScores') || '[]');
+
       const newScore = {
-        name: 'Unknown',
-        institution: 'N/A',
-        email: '',
+        // If userData is loaded, use that; else fallback
+        name: userData?.name || 'Unknown',
+        institution: userData?.institution || 'N/A',
+        email: userData?.email || '',
         time: timeElapsed,
         result: finalResult,
         date: new Date().toISOString()
@@ -193,15 +211,14 @@ function Game() {
   };
 
   const handleVideoEnd = () => {
+    // If the AI (video) finishes first, but game not over, set the lose color
     if (!gameOver && !aiFinishedFirst) {
       document.body.className = 'lose-bg';
       setAiFinishedFirst(true);
     }
   };
 
-  // ---------------------------
-  // GAME INITIALIZATION
-  // ---------------------------
+  // Initialize the game
   const initializeGame = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -209,11 +226,13 @@ function Game() {
     }
 
     const cardPairs = [...CARD_IMAGES, ...CARD_IMAGES];
-    const shuffledCards = cardPairs.sort(() => Math.random() - 0.5).map((image, index) => ({
-      id: index,
-      image,
-      isFlipped: false
-    }));
+    const shuffledCards = cardPairs
+      .sort(() => Math.random() - 0.5)
+      .map((image, index) => ({
+        id: index,
+        image,
+        isFlipped: false
+      }));
 
     setCards(shuffledCards);
     setFlippedCards([]);
@@ -232,9 +251,7 @@ function Game() {
     setShowLeaderboard(false);
   };
 
-  // ---------------------------
-  // START THE GAME
-  // ---------------------------
+  // Start the game
   const startGame = async () => {
     if (gameStarted) return;
 
@@ -244,12 +261,12 @@ function Game() {
 
     gameStartTimeRef.current = Date.now();
 
-    // Show all cards face-up briefly
+    // Briefly flip all cards face up
     const revealedCards = cards.map((card) => ({ ...card, isFlipped: true }));
     setCards(revealedCards);
     setGameStarted(true);
 
-    // Start the video
+    // Start playing the AI video
     if (videoRef.current) {
       try {
         if (!videoRef.current.readyState) {
@@ -268,16 +285,14 @@ function Game() {
       setTimeElapsed(Date.now() - gameStartTimeRef.current);
     }, 100);
 
-    // Flip the cards back after 3 seconds
+    // Flip cards back after 3 seconds
     setTimeout(() => {
       const hiddenCards = cards.map((card) => ({ ...card, isFlipped: false }));
       setCards(hiddenCards);
     }, 3000);
   };
 
-  // ---------------------------
-  // CARD CLICK
-  // ---------------------------
+  // Handle card click
   const handleCardClick = (clickedCard) => {
     if (!gameStarted || clickedCard.isFlipped || matchedCards.some((c) => c.id === clickedCard.id)) {
       return;
@@ -291,22 +306,22 @@ function Game() {
     const newFlipped = [...flippedCards, clickedCard];
     setFlippedCards(newFlipped);
 
-    // Check for match
+    // Check for a match
     if (newFlipped.length === 2) {
       if (newFlipped[0].image === newFlipped[1].image) {
         const updatedMatched = [...matchedCards, ...newFlipped];
         setMatchedCards(updatedMatched);
         setFlippedCards([]);
 
+        // All cards matched?
         if (updatedMatched.length === cards.length) {
-          // All cards matched -> game over
           setGameOver(true);
           clearInterval(timerRef.current);
           setTimeElapsed(Date.now() - gameStartTimeRef.current);
           finalizeGameResult();
         }
       } else {
-        // Not a match -> flip them back
+        // Not a match, flip back after 1s
         setTimeout(() => {
           const resetCards = cards.map((card) =>
             newFlipped.some((flipped) => flipped.id === card.id)
@@ -320,9 +335,7 @@ function Game() {
     }
   };
 
-  // ---------------------------
-  // ON MOUNT
-  // ---------------------------
+  // On mount, initialize game & preload video
   useEffect(() => {
     const initVideoAndGame = async () => {
       initializeGame();
@@ -339,9 +352,7 @@ function Game() {
     };
   }, []);
 
-  // ---------------------------
-  // STATUS MESSAGE
-  // ---------------------------
+  // Build status message
   let statusMessage = null;
   if (!gameOver && aiFinishedFirst) {
     statusMessage = <div className="lose-message">The AI won, but you can keep playing!</div>;
@@ -355,11 +366,12 @@ function Game() {
     }
   }
 
-  // Show the Leaderboard or the Game
+  // Show Leaderboard or the Game
   if (showLeaderboard) {
     return <LeaderboardPage onBack={() => setShowLeaderboard(false)} />;
   }
 
+  // Render the main memory match game
   return (
     <div className="App">
       <h1>CAN YOU BEAT THE AI?</h1>
@@ -372,9 +384,7 @@ function Game() {
 
         <div className="button-group-right">
           {/* 
-            NEW: "New User" button that 
-            1) Clears the old user data 
-            2) Navigates back to "/" so they can see FormPage 
+            "New User" clears local user data and sends them back to "/" (the form)
           */}
           <button
             onClick={() => {
