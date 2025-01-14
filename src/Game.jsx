@@ -157,6 +157,40 @@ function Game() {
 
   const navigate = useNavigate(); // Needed for "New User" button
 
+  // ------------------- FULLSCREEN ----------------------
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    // If there's no element in fullscreen, request it
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen()
+        .then(() => setIsFullscreen(true))
+        .catch((err) => {
+          console.error('Failed to enable fullscreen', err);
+        });
+    } else {
+      // If we are in fullscreen, exit
+      document.exitFullscreen()
+        .then(() => setIsFullscreen(false))
+        .catch((err) => {
+          console.error('Failed to exit fullscreen', err);
+        });
+    }
+  };
+
+  // Listen for "fullscreenchange" to keep our state accurate
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+  // ------------------------------------------------------
+
   // ------------------------------------------------------
   // 2) Save Game Score Using Real User Data if Available
   // ------------------------------------------------------
@@ -362,7 +396,11 @@ function Game() {
     } else if (gameResult === 'draw') {
       statusMessage = <div className="draw-message">It's a draw!</div>;
     } else if (gameResult === 'lose') {
-      statusMessage = <div className="lose-message">Congratulations! You'll beat the AI next time.</div>;
+      statusMessage = (
+        <div className="lose-message">
+          Congratulations! You'll beat the AI next time.
+        </div>
+      );
     }
   }
 
@@ -380,6 +418,11 @@ function Game() {
         <div className="button-group-left">
           {!gameStarted && <button onClick={startGame}>Start Game</button>}
           <button onClick={initializeGame}>Reset Game</button>
+
+          {/* FULLSCREEN BUTTON - ADDED */}
+          <button onClick={toggleFullscreen}>
+            {isFullscreen ? 'Exit Fullscreen' : 'Go Fullscreen'}
+          </button>
         </div>
 
         <div className="button-group-right">

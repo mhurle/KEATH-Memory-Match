@@ -63,34 +63,52 @@ h1 {
   min-height: 0;
 }
 
+/* 
+  ↓↓↓ KEY CHANGE ↓↓↓ 
+  Now a column layout so the video sits above the card grid, 
+  both centered horizontally.
+*/
 .game-layout {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   gap: 20px;
   flex: 1;
   min-height: 0;
   padding-bottom: 20px;
 }
 
+/* 
+  ↓↓↓ VIDEO CONTAINER CHANGED ↓↓↓ 
+  Removed "flex: 0 0 35%" 
+  Added a max-width for a 12-inch tablet feel.
+*/
 .video-container {
-  flex: 0 0 60%;
-  aspect-ratio: 16/9;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
 
 .game-video {
   width: 100%;
-  height: 100%;
+  height: auto;
   object-fit: contain;
   background-color: #000;
 }
 
+/* Center the card grid below the video, 
+   still 3 columns wide with adequate spacing. */
 .card-grid {
-    flex: 0 0 38%;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: min-content;
+  gap: 8px;
+  margin: 0 auto;
+  flex: 0 0 auto; /* optional, ensures it doesn't stretch weirdly */
+}
 
 .card-container {
   width: 80px;
@@ -167,7 +185,10 @@ button:hover {
   font-weight: 700;
 }
 
-.timer, .win-message, .draw-message, .lose-message {
+.timer,
+.win-message,
+.draw-message,
+.lose-message {
   font-family: 'Press Start 2P', cursive;
   font-size: 1rem;
   padding: 10px;
@@ -180,7 +201,7 @@ button:hover {
   padding: 15px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   line-height: 1.4;
   color: white;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
