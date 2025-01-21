@@ -3,53 +3,25 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function FormPage() {
+  // Track which tab is active: "play" or "interest"
+  const [activeTab, setActiveTab] = useState('play');
+
+  // Hold form data in state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     institution: '',
     institutionType: ''
   });
+
+  // Error and success states
   const [error, setError] = useState('');
+  const [interestSubmitted, setInterestSubmitted] = useState(false);
+
+  // Router navigation
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-
-    // Simple validation
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email');
-      return;
-    }
-
-    // 1) Optionally store data locally
-    localStorage.setItem('userGameData', JSON.stringify(formData));
-
-    // 2) Prepare a FormData object to POST to Netlify
-    //    Must match the form name in the hidden form within index.html (e.g. "user-info").
-    const data = new FormData();
-    data.append('form-name', 'user-info'); // same name used in index.html
-    data.append('name', formData.name);
-    data.append('email', formData.email);
-    data.append('institution', formData.institution);
-    data.append('institutionType', formData.institutionType);
-
-    // 3) Ajax POST to Netlify
-    fetch('/', {
-      method: 'POST',
-      body: data,
-    })
-      .then(() => {
-        console.log('Form submitted to Netlify!');
-        // 4) Navigate to /game
-        navigate('/game');
-      })
-      .catch((err) => {
-        console.error('Netlify form submission error:', err);
-        setError('Error submitting the form. Please try again.');
-      });
-  };
-
+  // Handle input changes
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -57,10 +29,132 @@ function FormPage() {
     }));
   };
 
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email');
+      return;
+    }
+
+    const data = new FormData();
+    data.append('form-name', 'user-info'); 
+    data.append('name', formData.name);
+    data.append('email', formData.email);
+    data.append('institution', formData.institution);
+    data.append('institutionType', formData.institutionType);
+    data.append('submissionType', activeTab); // Differentiates the tab
+
+    fetch('/', {
+      method: 'POST',
+      body: data
+    })
+      .then(() => {
+        console.log('Form submitted to Netlify!');
+        if (activeTab === 'play') {
+          localStorage.setItem('userGameData', JSON.stringify(formData));
+          navigate('/game');
+        } else {
+          setInterestSubmitted(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Netlify form submission error:', err);
+        setError('Error submitting the form. Please try again.');
+      });
+  };
+
+  // Show success page if registering interest was successful
+  if (activeTab === 'interest' && interestSubmitted) {
+    return (
+      <div className="survey-container">
+        <h2>Success!</h2>
+        <p>Your interest has been submitted. Thank you!</p>
+        <button
+          type="button"
+          onClick={() => setInterestSubmitted(false)}
+          style={{ marginTop: '20px' }}
+        >
+          Back to Form
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="survey-container">
-      <h2>Before You Play</h2>
-      <p>Please provide your information to continue</p>
+    <div 
+      className="survey-container" 
+      style={{ position: 'relative', paddingTop: '80px' }} // <-- Added top padding
+    >
+      {/* 
+        Tab toggle buttons - top-right corner, absolutely positioned
+      */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          display: 'flex',
+          gap: '8px'
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('play');
+            setError('');
+            setInterestSubmitted(false);
+          }}
+          style={{
+            border: '1px solid white',
+            backgroundColor: 'transparent',
+            color: 'white',
+            padding: '6px 10px',
+            fontSize: '0.7rem',
+            cursor: 'pointer',
+            opacity: activeTab === 'play' ? 0.8 : 0.6
+          }}
+        >
+          Play the Game
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('interest');
+            setError('');
+            setInterestSubmitted(false);
+          }}
+          style={{
+            border: '1px solid white',
+            backgroundColor: 'transparent',
+            color: 'white',
+            padding: '6px 10px',
+            fontSize: '0.7rem',
+            cursor: 'pointer',
+            opacity: activeTab === 'interest' ? 0.8 : 0.6
+          }}
+        >
+          Register Interest
+        </button>
+      </div>
+
+      {/* Heading and description */}
+      {activeTab === 'play' ? (
+        <>
+          <h2>Before You Play</h2>
+          <p>Please provide your information to continue</p>
+        </>
+      ) : (
+        <>
+          <h2>Register Interest</h2>
+          <p>
+            Please fill out the form below to register your interest in KEATH.ai. 
+            We’ll let you know about future updates, events and opportunities.
+          </p>
+        </>
+      )}
 
       <form onSubmit={handleSubmit} className="survey-form">
         <div className="form-group">
@@ -99,7 +193,6 @@ function FormPage() {
           />
         </div>
 
-        {/* New group of radio “tickboxes” for institutionType */}
         <div className="form-group">
           <label>Are you from a:</label>
           <label>
@@ -139,7 +232,9 @@ function FormPage() {
 
         {error && <div className="error-message">{error}</div>}
 
-        <button type="submit">Start Game</button>
+        <button type="submit">
+          {activeTab === 'play' ? 'Start Game' : 'Submit Interest'}
+        </button>
       </form>
     </div>
   );
