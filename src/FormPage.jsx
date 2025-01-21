@@ -34,19 +34,22 @@ function FormPage() {
     e.preventDefault();
     setError('');
 
+    // Basic validation
     if (!formData.email.includes('@')) {
       setError('Please enter a valid email');
       return;
     }
 
+    // Prepare data for Netlify
     const data = new FormData();
     data.append('form-name', 'user-info'); 
     data.append('name', formData.name);
     data.append('email', formData.email);
     data.append('institution', formData.institution);
     data.append('institutionType', formData.institutionType);
-    data.append('submissionType', activeTab); // Differentiates the tab
+    data.append('submissionType', activeTab); // Distinguish submissions
 
+    // Submit to Netlify
     fetch('/', {
       method: 'POST',
       body: data
@@ -54,9 +57,11 @@ function FormPage() {
       .then(() => {
         console.log('Form submitted to Netlify!');
         if (activeTab === 'play') {
+          // Store data & go to game
           localStorage.setItem('userGameData', JSON.stringify(formData));
           navigate('/game');
         } else {
+          // Interest submission success
           setInterestSubmitted(true);
         }
       })
@@ -66,7 +71,7 @@ function FormPage() {
       });
   };
 
-  // Show success page if registering interest was successful
+  // If someone just submitted interest, show success page
   if (activeTab === 'interest' && interestSubmitted) {
     return (
       <div className="survey-container">
@@ -74,7 +79,16 @@ function FormPage() {
         <p>Your interest has been submitted. Thank you!</p>
         <button
           type="button"
-          onClick={() => setInterestSubmitted(false)}
+          onClick={() => {
+            // Clear old data and re-show interest form empty
+            setInterestSubmitted(false);
+            setFormData({
+              name: '',
+              email: '',
+              institution: '',
+              institutionType: ''
+            });
+          }}
           style={{ marginTop: '20px' }}
         >
           Back to Form
@@ -86,7 +100,7 @@ function FormPage() {
   return (
     <div 
       className="survey-container" 
-      style={{ position: 'relative', paddingTop: '80px' }} // <-- Added top padding
+      style={{ position: 'relative', paddingTop: '80px' }}
     >
       {/* 
         Tab toggle buttons - top-right corner, absolutely positioned
@@ -144,13 +158,16 @@ function FormPage() {
       {activeTab === 'play' ? (
         <>
           <h2>Before You Play</h2>
-          <p>Please provide your information to continue</p>
+          <p>
+            Ready to dive in? By playing this game, you consent to us signing you up 
+            for KEATH.ai and occaisional email updates. We promise to keep it friendly, fun and never spam you!
+          </p>
         </>
       ) : (
         <>
           <h2>Register Interest</h2>
           <p>
-            Please fill out the form below to register your interest in KEATH.ai. 
+            Please fill out the form below to register your interest in KEATH.ai.
             We’ll let you know about future updates, events and opportunities.
           </p>
         </>
