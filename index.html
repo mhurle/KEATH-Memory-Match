@@ -13,26 +13,27 @@
     <!-- 
       1) HIDDEN NETLIFY FORM
       This ensures Netlify detects your form at build time. 
-      "user-info" is the form name. You can rename if you want. 
+      "user-info" is the form name. 
     -->
     <form
-  name="user-info" 
-  method="POST"
-  data-netlify="true"
-  style="display: none;"
->
-  <input type="hidden" name="form-name" value="user-info" />
+      name="user-info" 
+      method="POST"
+      data-netlify="true"
+      style="display: none;"
+    >
+      <input type="hidden" name="form-name" value="user-info" />
 
-  <!-- Optional spam/bot field -->
-  <p>
-    <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
-  </p>
+      <!-- Optional spam/bot field -->
+      <p>
+        <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
+      </p>
 
-  <!-- NEW: replicate your fields so Netlify knows about them -->
-  <input type="text" name="name" />
-  <input type="text" name="email" />
-  <input type="text" name="institution" />
-</form>
+      <!-- Replicate your fields so Netlify knows about them -->
+      <input type="text" name="name" />
+      <input type="text" name="email" />
+      <input type="text" name="institution" />
+      <input type="text" name="institutionType" />
+    </form>
 
     <script type="module" src="/src/main.jsx"></script>
   </body>

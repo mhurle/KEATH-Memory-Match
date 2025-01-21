@@ -6,7 +6,8 @@ function FormPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    institution: ''
+    institution: '',
+    institutionType: ''
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -27,10 +28,11 @@ function FormPage() {
     // 2) Prepare a FormData object to POST to Netlify
     //    Must match the form name in the hidden form within index.html (e.g. "user-info").
     const data = new FormData();
-    data.append('form-name', 'user-info');      // same name used in index.html
+    data.append('form-name', 'user-info'); // same name used in index.html
     data.append('name', formData.name);
     data.append('email', formData.email);
     data.append('institution', formData.institution);
+    data.append('institutionType', formData.institutionType);
 
     // 3) Ajax POST to Netlify
     fetch('/', {
@@ -95,6 +97,44 @@ function FormPage() {
             required
             placeholder="Enter your institution"
           />
+        </div>
+
+        {/* New group of radio “tickboxes” for institutionType */}
+        <div className="form-group">
+          <label>Are you from a:</label>
+          <label>
+            <input
+              type="radio"
+              name="institutionType"
+              value="University"
+              checked={formData.institutionType === 'University'}
+              onChange={handleChange}
+              required
+            />
+            University
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="institutionType"
+              value="School"
+              checked={formData.institutionType === 'School'}
+              onChange={handleChange}
+              required
+            />
+            School
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="institutionType"
+              value="Other"
+              checked={formData.institutionType === 'Other'}
+              onChange={handleChange}
+              required
+            />
+            Other
+          </label>
         </div>
 
         {error && <div className="error-message">{error}</div>}

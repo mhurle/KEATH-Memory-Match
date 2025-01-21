@@ -161,7 +161,6 @@ function Game() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = () => {
-    // If there's no element in fullscreen, request it
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen()
         .then(() => setIsFullscreen(true))
@@ -169,7 +168,6 @@ function Game() {
           console.error('Failed to enable fullscreen', err);
         });
     } else {
-      // If we are in fullscreen, exit
       document.exitFullscreen()
         .then(() => setIsFullscreen(false))
         .catch((err) => {
@@ -178,12 +176,10 @@ function Game() {
     }
   };
 
-  // Listen for "fullscreenchange" to keep our state accurate
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -199,7 +195,6 @@ function Game() {
       let existingScores = JSON.parse(localStorage.getItem('gameScores') || '[]');
 
       const newScore = {
-        // If userData is loaded, use that; else fallback
         name: userData?.name || 'Unknown',
         institution: userData?.institution || 'N/A',
         email: userData?.email || '',
@@ -245,7 +240,6 @@ function Game() {
   };
 
   const handleVideoEnd = () => {
-    // If the AI (video) finishes first, but game not over, set the lose color
     if (!gameOver && !aiFinishedFirst) {
       document.body.className = 'lose-bg';
       setAiFinishedFirst(true);
@@ -414,31 +408,24 @@ function Game() {
     <div className="App">
       <h1>CAN YOU BEAT THE AI?</h1>
 
+      {/* Top bar: fullscreen + new user on the left, leaderboard on the right */}
       <div className="top-bar">
         <div className="button-group-left">
-          {!gameStarted && <button onClick={startGame}>Start Game</button>}
-          <button onClick={initializeGame}>Reset Game</button>
-
-          {/* FULLSCREEN BUTTON - ADDED */}
           <button onClick={toggleFullscreen}>
             {isFullscreen ? 'Exit Fullscreen' : 'Go Fullscreen'}
+          </button>
+          <button
+            onClick={() => {
+              localStorage.removeItem('userGameData');
+              navigate('/');
+            }}
+            style={{ backgroundColor: '#FF4500' }}
+          >
+            New User
           </button>
         </div>
 
         <div className="button-group-right">
-          {/* 
-            "New User" clears local user data and sends them back to "/" (the form)
-          */}
-          <button
-            onClick={() => {
-              localStorage.removeItem('userGameData'); // optional
-              navigate('/'); // go back to the form route
-            }}
-            style={{ backgroundColor: '#FF4500', marginRight: '10px' }}
-          >
-            New User
-          </button>
-
           <button onClick={() => setShowLeaderboard(true)} className="leaderboard-button">
             View Leaderboard
           </button>
@@ -482,29 +469,38 @@ function Game() {
             </div>
           </div>
 
-          <div className="card-grid">
-            {cards.map((card) => (
-              <div
-                key={card.id}
-                onClick={() => handleCardClick(card)}
-                className="card-container"
-              >
+          <div className="game-play-area">
+            <div className="card-grid">
+              {cards.map((card) => (
                 <div
-                  className={`card ${
-                    card.isFlipped || matchedCards.some((m) => m.id === card.id)
-                      ? 'flipped'
-                      : ''
-                  }`}
+                  key={card.id}
+                  onClick={() => handleCardClick(card)}
+                  className="card-container"
                 >
-                  <div className="card-front">
-                    <img src="/card-back.jpg" alt="card back" className="card-image" />
-                  </div>
-                  <div className="card-back">
-                    <img src={card.image} alt="card front" className="card-image" />
+                  <div
+                    className={`card ${
+                      card.isFlipped || matchedCards.some((m) => m.id === card.id)
+                        ? 'flipped'
+                        : ''
+                    }`}
+                  >
+                    <div className="card-front">
+                      <img src="/card-back.jpg" alt="card back" className="card-image" />
+                    </div>
+                    <div className="card-back">
+                      <img src={card.image} alt="card front" className="card-image" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <div className="side-buttons">
+              {!gameStarted && (
+                <button onClick={startGame}>Start Game</button>
+              )}
+              <button onClick={initializeGame}>Reset Game</button>
+            </div>
           </div>
         </div>
       </div>

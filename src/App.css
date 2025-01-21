@@ -27,7 +27,8 @@ body.draw-bg {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  height: 100vh;
+  /* Allow scrolling and ensure there's enough vertical space. */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -63,11 +64,7 @@ h1 {
   min-height: 0;
 }
 
-/* 
-  ↓↓↓ KEY CHANGE ↓↓↓ 
-  Now a column layout so the video sits above the card grid, 
-  both centered horizontally.
-*/
+/* Increased bottom padding to ensure the last row of cards isn't cut off */
 .game-layout {
   display: flex;
   flex-direction: column;
@@ -76,14 +73,27 @@ h1 {
   gap: 20px;
   flex: 1;
   min-height: 0;
-  padding-bottom: 20px;
+  padding-bottom: 100px;
 }
 
-/* 
-  ↓↓↓ VIDEO CONTAINER CHANGED ↓↓↓ 
-  Removed "flex: 0 0 35%" 
-  Added a max-width for a 12-inch tablet feel.
-*/
+/* Make this 600px so it lines up with the video container's max width */
+.game-play-area {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 600px;
+  margin: 0 auto;
+  margin-top: 20px; /* optional spacing */
+}
+
+.side-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end; /* ensures the button edges align on the right */
+}
+
 .video-container {
   width: 100%;
   max-width: 600px;
@@ -99,15 +109,13 @@ h1 {
   background-color: #000;
 }
 
-/* Center the card grid below the video, 
-   still 3 columns wide with adequate spacing. */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: min-content;
   gap: 8px;
   margin: 0 auto;
-  flex: 0 0 auto; /* optional, ensures it doesn't stretch weirdly */
+  flex: 0 0 auto;
 }
 
 .card-container {
