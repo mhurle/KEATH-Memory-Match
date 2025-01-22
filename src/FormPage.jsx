@@ -42,7 +42,7 @@ function FormPage() {
 
     // Prepare data for Netlify
     const data = new FormData();
-    data.append('form-name', 'user-info'); 
+    data.append('form-name', 'user-info');
     data.append('name', formData.name);
     data.append('email', formData.email);
     data.append('institution', formData.institution);
@@ -98,8 +98,8 @@ function FormPage() {
   }
 
   return (
-    <div 
-      className="survey-container" 
+    <div
+      className="survey-container"
       style={{ position: 'relative', paddingTop: '80px' }}
     >
       {/* 
@@ -159,8 +159,9 @@ function FormPage() {
         <>
           <h2>Before You Play</h2>
           <p>
-            Ready to dive in? By playing this game, you consent to us signing you up 
-            for KEATH.ai and occaisional email updates. We promise to keep it friendly, fun and never spam you!
+            Ready to dive in? By playing this game, you consent to us signing you up
+            for KEATH.ai and occasional email updates. We promise to keep it friendly,
+            fun and never spam you!
           </p>
         </>
       ) : (
@@ -253,6 +254,34 @@ function FormPage() {
           {activeTab === 'play' ? 'Start Game' : 'Submit Interest'}
         </button>
       </form>
+
+      {/* Secret button to skip straight to /game with N/A details */}
+      <button
+        type="button"
+        onClick={() => {
+          // Store default N/A user data
+          localStorage.setItem('userGameData', JSON.stringify({
+            name: 'N/A',
+            email: 'N/A',
+            institution: 'N/A',
+            institutionType: 'Other',
+          }));
+          // Go directly to the game
+          navigate('/game');
+        }}
+        style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          width: '20px',
+          height: '20px',
+          opacity: 0.1,
+          backgroundColor: '#fff',
+          border: '1px solid #ccc',
+          borderRadius: '3px',
+          cursor: 'pointer'
+        }}
+      />
     </div>
   );
 }
