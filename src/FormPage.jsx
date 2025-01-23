@@ -169,7 +169,9 @@ function FormPage() {
           <h2>Register Interest</h2>
           <p>
             Please fill out the form below to register your interest in KEATH.ai.
-            We’ll let you know about future updates, events and opportunities.
+            By doing so, you consent to us signing you up
+            for KEATH.ai and occasional email updates. We promise to keep it friendly,
+            fun and never spam you!
           </p>
         </>
       )}
